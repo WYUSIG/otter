@@ -3,7 +3,7 @@ create database otter_demo_ds1;
 
 create table if not exists otter_demo_ds1.tb_user
 (
-    id   bigint      not null primary key comment '用户id',
+    id   bigint      not null primary key auto_increment comment '用户id',
     name varchar(30) null comment '用户姓名',
     age  int         null comment '年龄'
 ) engine = innodb
@@ -11,7 +11,7 @@ create table if not exists otter_demo_ds1.tb_user
 
 create table if not exists otter_demo_ds1.tb_order
 (
-    id        bigint      not null primary key comment '订单号',
+    id        bigint      not null primary key auto_increment comment '订单号',
     code      varchar(50) null comment '订单编号',
     good_name varchar(50) null comment '商品名称',
     price     decimal     null comment '价格'
@@ -20,7 +20,7 @@ create table if not exists otter_demo_ds1.tb_order
 
 create table if not exists otter_demo_ds1.tb_lead
 (
-    id                   bigint       not null primary key comment '例子id',
+    id                   bigint       not null primary key auto_increment comment '例子id',
     user_id              bigint       not null comment '用户id',
     user_name            bigint       null comment '用户姓名',
     user_phone           varchar(20)  null comment '用户电话',
@@ -39,7 +39,7 @@ create database otter_demo_ds2;
 
 create table if not exists otter_demo_ds2.tb_user
 (
-    id        bigint      not null primary key comment '用户id',
+    id        bigint      not null primary key auto_increment comment '用户id',
     name      varchar(30) null comment '用户姓名',
     age       int         null comment '年龄',
     wx_openid varchar(50) comment '微信openid'
@@ -48,7 +48,7 @@ create table if not exists otter_demo_ds2.tb_user
 
 create table if not exists otter_demo_ds2.tb_order
 (
-    id    bigint      not null primary key comment '订单号',
+    id    bigint      not null primary key auto_increment comment '订单号',
     code  varchar(50) null comment '订单编号',
     price decimal     null comment '价格'
 ) engine = innodb
@@ -56,7 +56,7 @@ create table if not exists otter_demo_ds2.tb_order
 
 create table if not exists otter_demo_ds2.tb_lead
 (
-    id         bigint      not null primary key comment '例子id',
+    id         bigint      not null primary key auto_increment comment '例子id',
     user_id    bigint      not null comment '用户id',
     user_name  bigint      null comment '用户姓名',
     user_phone varchar(20) null comment '用户电话',

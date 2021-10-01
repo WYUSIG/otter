@@ -67,9 +67,9 @@ public class SecurityUtils {
         return password.toString();
     }
 
-    // public static void main(String[] args) {
-    // System.out.println(getMD5Str("operator"));
-    // System.out.println(getPassword("operator"));
-    // }
+     public static void main(String[] args) {
+//        System.out.println(getMD5Str("operator"));
+        System.out.println(getPassword("mxc123456"));
+     }
 
 }
