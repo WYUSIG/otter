@@ -125,7 +125,8 @@
 		<module>shared</module>
 		<module>manager</module>
 		<module>node</module>
-	</modules>
+        <module>data-prepare</module>
+    </modules>
 
 	<dependencyManagement>
 		<dependencies>
