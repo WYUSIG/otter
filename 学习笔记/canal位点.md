@@ -4,12 +4,22 @@ show binary logs;
 
 show binlog events in 'mysql-bin.000012';
 
-mysqlbinlog --start-position=219 --stop-position=1001 ../data/mysql-bin.000012
+mysqlbinlog --start-position=219 --stop-position=1001 --base64-output=decode-rows ../data/mysql-bin.000012
+
+mysqldump -uuser -ppass --single-transaction --all-databases > backup_db.sql
+
+mysqldump mxc_uat --host=127.0.0.1 --port=3306 --user=root --password=123456 --single-transaction --master-data=2 --result-file=F:/个人文件/otter_demo_ds1.sql
+
+mysqldump otter_demo_ds1 --host=127.0.0.1 --port=3306 --user=root --single-transaction --master-data=2 --result-file=F:/个人文件/otter_demo_ds1.sql
+
+alter database crm_test default charset = utf8;
+
+show create database crm_test;
 ```
 
 journalName:binlog文件名
 
-position:位置
+position:位置 
 
 timestamp:时间戳
 

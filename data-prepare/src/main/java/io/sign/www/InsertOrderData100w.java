@@ -2,25 +2,22 @@ package io.sign.www;
 
 import io.sign.www.util.JDBCUtil;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class InsertData100w {
+public class InsertOrderData100w {
 
     private static final int NUMBER = 1000000;
 
     private static final int CONNECTION_NUMBER = 60;
 
-    private static final String[] nameArray = new String[]{"张三", "李四", "学习", "浩然", "萌新", "哈皮"};
+    private static final String[] nameArray = new String[]{"可乐", "雪碧", "辣条", "糖果", "玩具", "杯子"};
 
-    private static final Integer[] ageArray = new Integer[]{4, 10, 20, 16, 17, 12};
+    private static final String[] ageArray = new String[]{"4.1", "10", "3.88", "7.12", "3.21", "5"};
 
     private static Connection[] connectList = new Connection[CONNECTION_NUMBER];
 
@@ -28,14 +25,14 @@ public class InsertData100w {
 
     public static void main(String[] args) throws Exception {
         init();
-        insertUse();
+        insertOrder();
         shutdown();
     }
 
     public static void init() throws Exception {
         for (int i = 0; i < CONNECTION_NUMBER; i++) {
             Connection connection = JDBCUtil.getConnection();
-            String sql = "insert into tb_user(name, age) values (?, ?)";
+            String sql = "insert into tb_order(good_name, price) values (?, ?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             connectList[i] = connection;
             preparedStatementList[i] = preparedStatement;
@@ -46,7 +43,7 @@ public class InsertData100w {
         return preparedStatementList[index % CONNECTION_NUMBER];
     }
 
-    public static void insertUse() throws Exception {
+    public static void insertOrder() throws Exception {
         long startTime = System.currentTimeMillis();
         ExecutorService executorService = Executors.newFixedThreadPool(60);
         CountDownLatch countDownLatch = new CountDownLatch(NUMBER);
@@ -57,7 +54,7 @@ public class InsertData100w {
                 int index = finalI % nameArray.length;
                 try {
                     preparedStatement.setString(1, nameArray[index]);
-                    preparedStatement.setInt(2, ageArray[index]);
+                    preparedStatement.setBigDecimal(2, new BigDecimal(ageArray[index]));
                     preparedStatement.executeUpdate();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -70,7 +67,7 @@ public class InsertData100w {
         executorService.shutdown();
         long endTime = System.currentTimeMillis();
         long costTime = endTime - startTime;
-        System.out.println("用户表插入" + NUMBER + "条数据所需时间：" + costTime + " ms");
+        System.out.println("订单表插入" + NUMBER + "条数据所需时间：" + costTime + " ms");
     }
 
     private static void shutdown() throws Exception {
