@@ -36,3 +36,5 @@ canal获取最后的位置信息：
 
 5、若配置journaName，优先匹配journalName + position
   没有position在匹配journamName + timestamp
+
+com.alibaba.otter.node.etl.extract.extractor.FreedomExtractor

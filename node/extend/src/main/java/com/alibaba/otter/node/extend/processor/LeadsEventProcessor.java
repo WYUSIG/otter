@@ -77,6 +77,9 @@ public class LeadsEventProcessor extends AbstractEventProcessor {
         String channelLevelId = null;
         int maxChannelIndex = 0;
         String demoCourseStatus = "0";
+        String channel = null;
+        String createTime = null;
+        String signStatus = "0";
         for (EventColumn column : eventData.getColumns()) {
             if ("whiteListFlag".equals(column.getColumnName())) {
                 if (!column.isNull() && "1".equals(column.getColumnValue())) {
@@ -86,16 +89,9 @@ public class LeadsEventProcessor extends AbstractEventProcessor {
                 if (!column.isNull() && "1".equals(column.getColumnValue())) {
                     inDeadSeaList = true;
                 }
-
             } else if ("publicSeaFlag".equals(column.getColumnName())) {
                 if (!column.isNull() && "1".equals(column.getColumnValue())) {
                     inPublicSea = true;
-                }
-            } else if ("channel2".equals(column.getColumnName())) {
-                if (channelIndex.get(column.getColumnName()) > maxChannelIndex) {
-                    if (!column.isNull()) {
-                        channelLevelId = column.getColumnValue();
-                    }
                 }
             } else if ("channel3".equals(column.getColumnName())) {
                 if (channelIndex.get(column.getColumnName()) > maxChannelIndex) {
@@ -103,15 +99,11 @@ public class LeadsEventProcessor extends AbstractEventProcessor {
                         channelLevelId = column.getColumnValue();
                     }
                 }
-            } else if ("channel4".equals(column.getColumnName())) {
-                if (channelIndex.get(column.getColumnName()) > maxChannelIndex) {
-                    if (!column.isNull()) {
-                        channelLevelId = column.getColumnValue();
-                    }
-                }
-            } else if ("demoCourseEndTime".equals(column.getColumnName())) {
+            }else if ("demoCourseEndTime".equals(column.getColumnName())) {
                 if (!column.isNull()) {
-                    demoCourseStatus = "1";
+                    if (!"2".equals(demoCourseStatus)) {
+                        demoCourseStatus = "1";
+                    }
                 }
             } else if ("childSex".equals(column.getColumnName())) {
                 String childSex = processChildSex(column);
@@ -135,6 +127,32 @@ public class LeadsEventProcessor extends AbstractEventProcessor {
                 column.setNull(false);
                 column.setColumnType(Types.TINYINT);
                 column.setColumnValue(intention);
+            } else if ("allocatedStatus".equals(column.getColumnName())) {
+                String allocatedStatus = processAllocatedStatus(column);
+                column.setNull(false);
+                column.setColumnType(Types.TINYINT);
+                column.setColumnValue(allocatedStatus);
+            } else if ("dataStatus".equals(column.getColumnName())) {
+                if (!column.isNull() && "CANCEL".equals(column.getColumnValue())) {
+                    demoCourseStatus = "2";
+                } else if (!column.isNull() && "SIGN".equals(column.getColumnValue())) {
+                    signStatus = "1";
+                }
+            } else if ("channel".equals(column.getColumnName())) {
+                if (!column.isNull()) {
+                    channel = column.getColumnValue();
+                }
+            } else if ("createTime".equals(column.getColumnName())) {
+                if (!column.isNull()) {
+                    createTime = column.getColumnValue();
+                }
+            } else if ("childAge".equals(column.getColumnName())) {
+                if (!column.isNull()) {
+                    int childAge = Integer.parseInt(column.getColumnValue());
+                    if (childAge < 0 || childAge > 99) {
+                        column.setColumnValue("0");
+                    }
+                }
             }
         }
         String leadsType = "0";
@@ -146,27 +164,86 @@ public class LeadsEventProcessor extends AbstractEventProcessor {
             leadsType = "2";
         }
         //借用publicSeaFlag -> leads_type
-        //借用channel4 -> channel_level_id
+        //借用channel3 -> channel_level_id
         //借用demoCourseEndTime -> demo_course_status
+        //借用dataStatus -> sign_status
         for (EventColumn column : eventData.getColumns()) {
             if ("publicSeaFlag".equals(column.getColumnName())) {
                 column.setColumnType(Types.INTEGER);
                 column.setNull(false);
                 column.setColumnValue(leadsType);
-            } else if ("channel4".equals(column.getColumnName())) {
+            } else if ("channel3".equals(column.getColumnName())) {
+                column.setColumnType(Types.BIGINT);
                 if (channelLevelId == null) {
                     column.setNull(true);
                 } else {
                     column.setNull(false);
-                    column.setColumnValue(channelLevelId);
+                    try {
+                        Integer.parseInt(channelLevelId);
+                        column.setColumnValue(channelLevelId);
+                    } catch (Exception e) {
+                        column.setColumnValue("0");
+                    }
                 }
             } else if ("demoCourseEndTime".equals(column.getColumnName())) {
                 column.setColumnType(Types.INTEGER);
                 column.setNull(false);
                 column.setColumnValue(demoCourseStatus);
+            } else if("dataStatus".equals(column.getColumnName())) {
+                column.setColumnType(Types.TINYINT);
+                column.setNull(false);
+                column.setColumnValue(signStatus);
+            }
+            if ("attend_status".equals(column.getColumnName())) {
+                fillDefaultIfNull(column, "-1");
+            } else if ("activeChannel".equals(column.getColumnName())) {
+                fillDefaultIfNull(column, channel);
+            } else if ("activeTime".equals(column.getColumnName())) {
+                fillDefaultIfNull(column, createTime);
+            } else {
+                fillDefaultIfNull(column, null);
             }
         }
         return true;
+    }
+
+    private void fillDefaultIfNull(EventColumn column, String value) {
+        if (column.isNull()) {
+            column.setNull(false);
+            if (value != null) {
+                column.setColumnValue(value);
+                return;
+            }
+            switch (column.getColumnType()) {
+                case Types.INTEGER:
+                    column.setColumnValue("0");
+                    break;
+                case Types.TINYINT:
+                    column.setColumnValue("0");
+                    break;
+                case Types.BIGINT:
+                    column.setColumnValue("0");
+                    break;
+                case Types.VARCHAR:
+                    column.setColumnValue("");
+                    break;
+                case Types.DATE:
+                    column.setColumnValue("2021-10-14 00:00:00");
+                    break;
+            }
+        }
+    }
+
+    private String processAllocatedStatus(EventColumn column) {
+        if (column.isNull()) {
+            return "1";
+        } else {
+            if ("未分配".equals(column.getColumnValue())) {
+                return "0";
+            } else {
+                return "1";
+            }
+        }
     }
 
     private String processIntention(EventColumn column) {
