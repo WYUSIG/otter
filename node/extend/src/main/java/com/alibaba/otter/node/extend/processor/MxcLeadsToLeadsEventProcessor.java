@@ -4,16 +4,20 @@ import com.alibaba.otter.shared.etl.model.EventColumn;
 import com.alibaba.otter.shared.etl.model.EventData;
 
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MxcLeadsToLeadsEventProcessor extends AbstractEventProcessor {
 
     public boolean process(EventData eventData) {
         String phone = null;
+        List<EventColumn> columns = new ArrayList<EventColumn>();
         for (EventColumn column : eventData.getColumns()) {
             if ("user_id".equals(column.getColumnName())) {
                 column.setColumnType(Types.TINYINT);
                 column.setNull(false);
                 column.setColumnValue("1");
+                columns.add(column);
             } else if ("phone".equals(column.getColumnName())) {
                 if (!column.isNull()) {
                     phone = column.getColumnValue();
@@ -23,10 +27,21 @@ public class MxcLeadsToLeadsEventProcessor extends AbstractEventProcessor {
         if (phone == null) {
             return false;
         }
-        for(EventColumn column : eventData.getKeys()) {
-            column.setColumnType(Types.VARCHAR);
-            column.setColumnValue(phone);
+        List<EventColumn> oldKeys = eventData.getOldKeys();
+        if (oldKeys.size() > 0) {
+            eventData.setOldKeys(oldKeys);
         }
+        List<EventColumn> newKeys = new ArrayList<EventColumn>();
+        EventColumn userPhone = new EventColumn();
+        userPhone.setColumnType(Types.VARCHAR);
+        userPhone.setKey(true);
+        userPhone.setNull(false);
+        userPhone.setUpdate(false);
+        userPhone.setColumnName("phone");
+        userPhone.setColumnValue(phone);
+        newKeys.add(userPhone);
+        eventData.setKeys(newKeys);
+        eventData.setColumns(columns);
         return true;
     }
 }

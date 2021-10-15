@@ -4,32 +4,16 @@ import com.alibaba.otter.shared.etl.model.EventColumn;
 import com.alibaba.otter.shared.etl.model.EventData;
 
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserToLeadsEventProcessor extends AbstractEventProcessor {
 
     public boolean process(EventData eventData) {
-        //处理非default not null字段, 都给默认值
-        //借用createTime -> channel_level_id, isUpdate=false, bigint
-        //借用version -> active_time,  isUpdate=false, datetime
-        //借用userName -> channel_code,  isUpdate=false, varchar
+        List<EventColumn> columns = new ArrayList<EventColumn>();
         String phone = null;
         for (EventColumn column : eventData.getColumns()) {
-            if ("createTime".equals(column.getColumnName())) {
-                column.setNull(false);
-                column.setColumnType(Types.BIGINT);
-                column.setUpdate(false);
-                column.setColumnValue("0");
-            } else if ("version".equals(column.getColumnName())) {
-                column.setNull(false);
-                column.setColumnType(Types.DATE);
-                column.setUpdate(false);
-                column.setColumnValue("2021-10-15 00:00:00");
-            } else if ("userName".equals(column.getColumnName())) {
-                column.setNull(false);
-                column.setColumnType(Types.VARCHAR);
-                column.setUpdate(false);
-                column.setColumnValue("");
-            } else if ("phone".equals(column.getColumnName())) {
+            if ("phone".equals(column.getColumnName())) {
                 if (!column.isNull()) {
                     phone = column.getColumnValue();
                 }
@@ -38,10 +22,18 @@ public class UserToLeadsEventProcessor extends AbstractEventProcessor {
         if (phone == null) {
             return false;
         }
-        for (EventColumn column : eventData.getKeys()) {
-            column.setColumnType(Types.VARCHAR);
-            column.setColumnValue(phone);
-        }
+        List<EventColumn> oldKeys = eventData.getOldKeys();
+        eventData.setOldKeys(oldKeys);
+        List<EventColumn> newKeys = new ArrayList<EventColumn>();
+        EventColumn userPhone = new EventColumn();
+        userPhone.setColumnType(Types.VARCHAR);
+        userPhone.setKey(true);
+        userPhone.setNull(false);
+        userPhone.setColumnName("phone");
+        userPhone.setColumnValue(phone);
+        newKeys.add(userPhone);
+        eventData.setKeys(newKeys);
+        eventData.setColumns(columns);
         return true;
     }
 }

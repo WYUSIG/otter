@@ -99,7 +99,7 @@ public class LeadsEventProcessor extends AbstractEventProcessor {
                         channelLevelId = column.getColumnValue();
                     }
                 }
-            }else if ("demoCourseEndTime".equals(column.getColumnName())) {
+            } else if ("demoCourseEndTime".equals(column.getColumnName())) {
                 if (!column.isNull()) {
                     if (!"2".equals(demoCourseStatus)) {
                         demoCourseStatus = "1";
@@ -189,7 +189,7 @@ public class LeadsEventProcessor extends AbstractEventProcessor {
                 column.setColumnType(Types.INTEGER);
                 column.setNull(false);
                 column.setColumnValue(demoCourseStatus);
-            } else if("dataStatus".equals(column.getColumnName())) {
+            } else if ("dataStatus".equals(column.getColumnName())) {
                 column.setColumnType(Types.TINYINT);
                 column.setNull(false);
                 column.setColumnValue(signStatus);
