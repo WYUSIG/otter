@@ -317,6 +317,16 @@ public class DatabaseExtractor extends AbstractExtractor<DbBatch> implements Ini
                 needAll |= CollectionUtils.isEmpty(eventData.getUpdatedColumns())
                            && dataMedia.getSource().getType().isOracle();
 
+                boolean skip = true;
+                for (DataMediaPair pair : pipeline.getPairs()) {
+                    if (pair.getSource().getId().equals(dataMedia.getId())) {
+                        skip = false;
+                        break;
+                    }
+                }
+                if (skip) {
+                    return;
+                }
                 List<DataMediaPair> mediaParis = ConfigHelper.findDataMediaPairByMediaId(pipeline, dataMedia.getId());
                 List<String> viewColumnNames = buildMaxColumnsFromColumnPairs(mediaParis, eventData.getKeys());
 
